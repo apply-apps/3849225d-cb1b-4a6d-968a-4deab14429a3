@@ -2,33 +2,33 @@
 // Combined code from all files
 
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, StyleSheet, Text, ScrollView, ActivityIndicator, View, FlatList, Image } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, ScrollView, ActivityIndicator, View, Image } from 'react-native';
 import axios from 'axios';
 
 const API_URL = 'http://apihub.p.appply.xyz:3300/chatgpt';
 
-const ProductList = () => {
-    const [products, setProducts] = useState([]);
+const HomePage = () => {
+    const [homePageData, setHomePageData] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchProducts();
+        fetchHomePageData();
     }, []);
 
-    const fetchProducts = async () => {
+    const fetchHomePageData = async () => {
         try {
             const response = await axios.post(API_URL, {
                 messages: [
                     { role: "system", content: "You are a helpful assistant. Please provide answers for given requests." },
-                    { role: "user", content: `Fetch a list of products for an online shop.` }
+                    { role: "user", content: `Fetch homepage data for deliciousscent.de` }
                 ],
                 model: "gpt-4o"
             });
             const resultString = response.data.response;
-            const productsData = JSON.parse(resultString);
-            setProducts(productsData);
+            const homePageData = JSON.parse(resultString);
+            setHomePageData(homePageData);
         } catch (error) {
-            console.error('Error fetching products:', error);
+            console.error('Error fetching homepage data:', error);
         } finally {
             setLoading(false);
         }
@@ -42,29 +42,28 @@ const ProductList = () => {
         );
     }
 
-    const renderItem = ({ item }) => (
-        <View style={styles.productContainer}>
-            <Image source={{ uri: item.image_url }} style={styles.image} />
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.price}>${item.price}</Text>
-        </View>
-    );
-
     return (
-        <FlatList
-            data={products}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.list}
-        />
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <Image source={{ uri: homePageData.banner_image_url }} style={styles.bannerImage} />
+            <Text style={styles.header}>{homePageData.header}</Text>
+            <Text style={styles.description}>{homePageData.description}</Text>
+
+            {homePageData.featured_products.map((product, index) => (
+                <View key={index} style={styles.productContainer}>
+                    <Image source={{ uri: product.image_url }} style={styles.productImage} />
+                    <Text style={styles.productName}>{product.name}</Text>
+                    <Text style={styles.productPrice}>${product.price}</Text>
+                </View>
+            ))}
+        </ScrollView>
     );
 };
 
 const App = () => {
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.title}>SleekShop Products</Text>
-            <ProductList />
+            <Text style={styles.title}>Delicious Scent</Text>
+            <HomePage />
         </SafeAreaView>
     );
 }
@@ -82,8 +81,27 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 20,
     },
-    list: {
+    scrollContainer: {
+        alignItems: 'center',
         paddingBottom: 20,
+    },
+    bannerImage: {
+        width: '100%',
+        height: 200,
+        borderRadius: 10,
+        marginBottom: 20,
+    },
+    header: {
+        fontSize: 26,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+    description: {
+        fontSize: 16,
+        textAlign: 'center',
+        marginBottom: 20,
+        paddingHorizontal: 20,
     },
     productContainer: {
         backgroundColor: '#fff',
@@ -95,19 +113,20 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 4,
         elevation: 5,
+        width: '90%',
     },
-    image: {
+    productImage: {
         width: '100%',
-        height: 200,
+        height: 150,
         borderRadius: 10,
         marginBottom: 10,
     },
-    name: {
+    productName: {
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 10,
     },
-    price: {
+    productPrice: {
         fontSize: 16,
         color: '#888',
     },
