@@ -5,14 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { SafeAreaView, StyleSheet, Text, ScrollView, ActivityIndicator, View, FlatList, Image } from 'react-native';
 import axios from 'axios';
 
-const App = () => {
-    return (
-        <SafeAreaView style={styles.container}>
-            <Text style={styles.title}>SleekShop Products</Text>
-            <ProductList />
-        </SafeAreaView>
-    );
-};
+const API_URL = 'http://apihub.p.appply.xyz:3300/chatgpt';
 
 const ProductList = () => {
     const [products, setProducts] = useState([]);
@@ -24,8 +17,16 @@ const ProductList = () => {
 
     const fetchProducts = async () => {
         try {
-            const response = await axios.get('https://api.sleekshop.io/v2/products');
-            setProducts(response.data);
+            const response = await axios.post(API_URL, {
+                messages: [
+                    { role: "system", content: "You are a helpful assistant. Please provide answers for given requests." },
+                    { role: "user", content: `Fetch a list of products for an online shop.` }
+                ],
+                model: "gpt-4o"
+            });
+            const resultString = response.data.response;
+            const productsData = JSON.parse(resultString);
+            setProducts(productsData);
         } catch (error) {
             console.error('Error fetching products:', error);
         } finally {
@@ -59,6 +60,15 @@ const ProductList = () => {
     );
 };
 
+const App = () => {
+    return (
+        <SafeAreaView style={styles.container}>
+            <Text style={styles.title}>SleekShop Products</Text>
+            <ProductList />
+        </SafeAreaView>
+    );
+}
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -71,11 +81,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 20,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     list: {
         paddingBottom: 20,
@@ -105,6 +110,11 @@ const styles = StyleSheet.create({
     price: {
         fontSize: 16,
         color: '#888',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });
 
